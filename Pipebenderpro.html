@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Pipe Bender Pro</title>
+<!-- fonts loaded inline to avoid Bluefy network block -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body.dark{--bg:#080808;--surface:#121212;--card:#1a1a1a;--bdr:#282828;--txt:#f0f0f0;--sub:#555;--sub2:#333;--gold:#f5c400;--green:#00d97e;--orange:#ff8c00;--red:#ff3b5c;--purple:#9b59ff;--blue:#0a84ff;}
+body.light{--bg:#f0ede8;--surface:#ffffff;--card:#f8f5f0;--bdr:#ddd8d0;--txt:#1a1a1a;--sub:#888;--sub2:#ccc;--gold:#b8860b;--green:#007a47;--orange:#cc6600;--red:#cc2244;--purple:#6633cc;--blue:#0055cc;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:'DM Mono','Courier New',monospace;transition:background 0.3s,color 0.3s;}
+.app{display:flex;flex-direction:column;height:100vh;}
+
+/* HEADER */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:44px 18px 12px;background:var(--bg);border-bottom:1px solid var(--bdr);flex-shrink:0;}
+.hdr-title{font-family:'Bebas Neue','Arial Black',sans-serif;font-size:20px;letter-spacing:4px;color:var(--gold);}
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.conn-pill{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;border:1px solid var(--bdr);font-size:9px;letter-spacing:2px;cursor:pointer;background:var(--surface);}
+.conn-pill.on{border-color:var(--green);color:var(--green);}
+.conn-pill.off{color:var(--sub);}
+.cdot{width:6px;height:6px;border-radius:50%;background:var(--sub);flex-shrink:0;}
+.conn-pill.on .cdot{background:var(--green);box-shadow:0 0 6px var(--green);}
+.icon-btn{width:36px;height:36px;border-radius:10px;background:var(--surface);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* DEGREE ZONE */
+.deg-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 20px;min-height:0;}
+.mode-badge{font-size:9px;letter-spacing:3px;color:var(--sub);margin-bottom:6px;}
+.deg-num{font-family:'Bebas Neue','Arial Black',sans-serif;font-size:clamp(80px,22vw,130px);line-height:0.9;letter-spacing:2px;transition:color 0.2s;color:var(--sub);}
+.deg-unit{font-size:clamp(16px,4vw,22px);letter-spacing:3px;color:var(--sub);margin-top:4px;}
+.status-line{font-size:clamp(10px,2.8vw,13px);letter-spacing:2px;text-align:center;color:var(--sub);margin-top:10px;padding:0 10px;min-height:20px;transition:color 0.2s;}
+
+/* BAR ZONE */
+.bar-zone{padding:0 24px;flex-shrink:0;}
+.lvl-bar{display:flex;align-items:center;justify-content:center;gap:clamp(6px,2vw,12px);padding:10px 0;}
+.ld{width:clamp(30px,7.5vw,46px);height:clamp(30px,7.5vw,46px);border-radius:50%;background:var(--surface);border:2px solid var(--bdr);transition:all 0.1s;display:flex;align-items:center;justify-content:center;font-size:clamp(8px,2vw,11px);color:var(--sub2);}
+.ld.ctr{width:clamp(38px,9.5vw,56px);height:clamp(38px,9.5vw,56px);}
+.ld.g{background:var(--green);border-color:var(--green);box-shadow:0 0 18px rgba(0,217,126,0.4);color:#000;}
+.ld.y{background:#aa8800;border-color:#aa8800;box-shadow:0 0 12px rgba(170,136,0,0.4);color:#000;}
+.ld.p{background:var(--purple);border-color:var(--purple);box-shadow:0 0 18px rgba(155,89,255,0.4);color:#fff;}
+.prog-track{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;border:1px solid var(--bdr);}
+.prog-fill{height:100%;border-radius:4px;transition:width 0.15s,background 0.2s;width:0%;background:var(--red);}
+.prog-labels{display:flex;justify-content:space-between;font-size:8px;letter-spacing:1px;color:var(--sub);margin-top:4px;}
+
+/* PRESET ZONE */
+.preset-zone{flex-shrink:0;padding:8px 16px;background:var(--surface);border-top:1px solid var(--bdr);}
+.preset-label{font-size:8px;letter-spacing:2px;color:var(--sub);text-align:center;margin-bottom:6px;}
+.preset-carousel{display:flex;align-items:center;justify-content:center;gap:8px;user-select:none;-webkit-user-select:none;touch-action:pan-y;}
+.pre-card{flex-shrink:0;width:clamp(54px,14vw,72px);height:clamp(54px,14vw,72px);border-radius:12px;background:var(--card);border:2px solid var(--bdr);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;}
+.pre-card.on{background:rgba(245,196,0,0.1);border-color:var(--gold);}
+.pre-card.adj{opacity:0.45;transform:scale(0.88);}
+.pre-deg{font-family:'Bebas Neue','Arial Black',sans-serif;font-size:clamp(18px,5vw,24px);letter-spacing:1px;color:var(--sub);}
+.pre-card.on .pre-deg{color:var(--gold);}
+.pre-unit{font-size:7px;letter-spacing:1px;color:var(--sub2);}
+.pre-card.on .pre-unit{color:var(--gold);}
+.swipe-hint{font-size:7px;letter-spacing:2px;color:var(--sub2);text-align:center;margin-top:4px;}
+
+/* CUSTOM DRAWER */
+.cust-drawer{display:none;flex-direction:column;gap:6px;padding:10px 16px;background:var(--surface);border-top:1px solid var(--bdr);}
+.cust-drawer.show{display:flex;}
+.cust-row{display:flex;align-items:center;gap:6px;}
+.cust-adj{flex:1;padding:10px 2px;background:var(--card);border:1px solid var(--bdr);border-radius:10px;font-family:'DM Mono','Courier New',monospace;font-size:10px;letter-spacing:1px;color:var(--txt);cursor:pointer;text-align:center;}
+.cust-adj:active{background:var(--bdr);}
+.cust-disp{flex:2;text-align:center;padding:10px;background:var(--bg);border:1px solid var(--bdr);border-radius:10px;font-family:'Bebas Neue','Arial Black',sans-serif;font-size:24px;color:var(--gold);letter-spacing:2px;}
+.over-badge{font-size:8px;letter-spacing:1px;color:var(--purple);text-align:center;}
+
+/* DEMO BAR */
+.demo-bar{display:none;align-items:center;gap:8px;padding:8px 16px;background:rgba(155,89,255,0.1);border-top:1px solid var(--purple);flex-shrink:0;}
+.demo-bar.show{display:flex;}
+.demo-label{font-size:9px;letter-spacing:2px;color:var(--purple);white-space:nowrap;}
+.demo-slider{flex:1;accent-color:var(--purple);}
+.demo-exit{font-size:9px;letter-spacing:1px;color:var(--purple);background:rgba(155,89,255,0.15);border:1px solid var(--purple);border-radius:8px;padding:5px 10px;cursor:pointer;white-space:nowrap;}
+
+/* BUTTONS */
+.btn-zone{flex-shrink:0;display:flex;gap:10px;padding:10px 16px 20px;background:var(--bg);border-top:1px solid var(--bdr);}
+.zero-btn{flex:2;padding:clamp(14px,4vw,18px) 8px;background:rgba(10,132,255,0.1);border:2px solid var(--blue);border-radius:14px;font-family:'DM Mono','Courier New',monospace;font-size:clamp(10px,2.8vw,13px);letter-spacing:2px;color:var(--blue);cursor:pointer;text-align:center;}
+.zero-btn:active{background:rgba(10,132,255,0.22);}
+.zero-btn.pulse{animation:pulse 1.1s ease-in-out infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(10,132,255,0.4);}50%{box-shadow:0 0 0 10px rgba(10,132,255,0);}}
+.cust-btn{flex:1;padding:clamp(14px,4vw,18px) 8px;background:var(--surface);border:1px solid var(--bdr);border-radius:14px;font-family:'DM Mono','Courier New',monospace;font-size:clamp(9px,2.5vw,11px);letter-spacing:1px;color:var(--sub);cursor:pointer;text-align:center;}
+.cust-btn.on{background:rgba(155,89,255,0.1);border-color:var(--purple);color:var(--purple);}
+
+/* SETTINGS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;display:none;align-items:flex-end;}
+.overlay.show{display:flex;}
+.settings-sheet{width:100%;background:var(--surface);border-radius:20px 20px 0 0;padding:20px 20px 30px;border-top:1px solid var(--bdr);}
+.sheet-title{font-family:'Bebas Neue','Arial Black',sans-serif;font-size:20px;letter-spacing:3px;color:var(--gold);margin-bottom:16px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--bdr);}
+.setting-lbl{font-size:11px;letter-spacing:2px;color:var(--txt);}
+.setting-sub{font-size:9px;letter-spacing:1px;color:var(--sub);margin-top:3px;}
+.toggle{width:52px;height:30px;border-radius:15px;background:var(--sub2);cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--gold);}
+.toggle::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.3);}
+.toggle.on::after{left:25px;}
+.sheet-close{width:100%;margin-top:16px;padding:14px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;font-family:'DM Mono','Courier New',monospace;font-size:11px;letter-spacing:2px;color:var(--sub);cursor:pointer;text-align:center;}
+
+/* CONNECT SCREEN - full screen overlay, starts visible */
+.conn-screen{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px 30px;}
+.conn-screen.hidden{display:none;}
+.conn-icon{font-size:56px;opacity:0.2;}
+.conn-title{font-family:'Bebas Neue','Arial Black',sans-serif;font-size:30px;letter-spacing:4px;color:var(--gold);}
+.conn-sub{font-size:10px;letter-spacing:1px;color:var(--sub);text-align:center;line-height:2.2;}
+.conn-btn{width:100%;max-width:300px;padding:18px;background:var(--gold);border:none;border-radius:14px;font-family:'DM Mono','Courier New',monospace;font-size:13px;letter-spacing:3px;color:#000;cursor:pointer;font-weight:500;}
+.conn-btn:active{opacity:0.85;}
+.demo-btn{width:100%;max-width:300px;padding:14px;background:rgba(155,89,255,0.12);border:1px solid var(--purple);border-radius:14px;font-family:'DM Mono','Courier New',monospace;font-size:12px;letter-spacing:2px;color:var(--purple);cursor:pointer;text-align:center;}
+.demo-btn:active{opacity:0.75;}
+.disc-btn{width:100%;max-width:300px;padding:12px;background:var(--surface);border:1px solid var(--bdr);border-radius:12px;font-family:'DM Mono','Courier New',monospace;font-size:10px;letter-spacing:2px;color:var(--sub);cursor:pointer;text-align:center;display:none;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface);border:1px solid var(--bdr);border-radius:20px;padding:8px 20px;font-size:11px;letter-spacing:1px;opacity:0;transition:all 0.22s;pointer-events:none;white-space:nowrap;z-index:200;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.g{border-color:var(--green);color:var(--green);}
+.toast.y{border-color:var(--orange);color:var(--orange);}
+</style>
+</head>
+<body class="dark">
+
+<!-- MAIN APP (always rendered underneath) -->
+<div class="app">
+  <div class="hdr">
+    <div class="hdr-title">&#8857; PIPE BENDER PRO</div>
+    <div class="hdr-right">
+      <div class="conn-pill off" id="connPill" onclick="toggleConn()">
+        <div class="cdot" id="cdot"></div>
+        <span id="connTxt">OFFLINE</span>
+      </div>
+      <div class="icon-btn" onclick="openSettings()">&#9881;</div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="deg-zone">
+      <div class="mode-badge" id="modeBadge">LEVEL MODE</div>
+      <div class="deg-num" id="degNum">&#8212;</div>
+      <div class="deg-unit">DEGREES</div>
+      <div class="status-line" id="statusLine">CONNECT DEVICE OR TRY DEMO</div>
+    </div>
+    <div class="bar-zone">
+      <div class="lvl-bar" id="lvlBar">
+        <div class="ld" id="ld0">&#9668;&#9668;</div>
+        <div class="ld" id="ld1">&#9668;</div>
+        <div class="ld ctr" id="ld2">&#9679;</div>
+        <div class="ld" id="ld3">&#9658;</div>
+        <div class="ld" id="ld4">&#9658;&#9658;</div>
+      </div>
+      <div id="progZone" style="display:none;padding:6px 0;">
+        <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+        <div class="prog-labels"><span>0</span><span id="progPct">0%</span><span id="progTgt">90&#176;</span></div>
+      </div>
+    </div>
+    <div class="preset-zone">
+      <div class="preset-label">SWIPE TO CHANGE TARGET</div>
+      <div class="preset-carousel" id="carousel"
+           ontouchstart="tsStart(event)" ontouchmove="tsMove(event)" ontouchend="tsEnd(event)">
+        <div class="pre-card adj" id="pc0" onclick="selPre(0)"><div class="pre-deg">10&#176;</div><div class="pre-unit">DEG</div></div>
+        <div class="pre-card adj" id="pc1" onclick="selPre(1)"><div class="pre-deg">22&#176;</div><div class="pre-unit">DEG</div></div>
+        <div class="pre-card adj" id="pc2" onclick="selPre(2)"><div class="pre-deg">30&#176;</div><div class="pre-unit">DEG</div></div>
+        <div class="pre-card adj" id="pc3" onclick="selPre(3)"><div class="pre-deg">45&#176;</div><div class="pre-unit">DEG</div></div>
+        <div class="pre-card on"  id="pc4" onclick="selPre(4)"><div class="pre-deg">90&#176;</div><div class="pre-unit">DEG</div></div>
+      </div>
+      <div class="swipe-hint">&#8592; swipe left or right &#8594;</div>
+    </div>
+    <div class="cust-drawer" id="custDrawer">
+      <div class="cust-row">
+        <button class="cust-adj" onclick="adjC(-5)">&#9660;&#9660; -5</button>
+        <button class="cust-adj" onclick="adjC(-1)">&#9660; -1</button>
+        <div class="cust-disp" id="custDisp">90&#176;</div>
+        <button class="cust-adj" onclick="adjC(1)">+1 &#9650;</button>
+        <button class="cust-adj" onclick="adjC(5)">+5 &#9650;&#9650;</button>
+      </div>
+      <div class="over-badge" id="overBadge">Overbend zone: 90&#176; &#8594; 100&#176;</div>
+    </div>
+    <div class="demo-bar" id="demoBar">
+      <span class="demo-label">&#9654; DEMO</span>
+      <input type="range" class="demo-slider" id="demoSlider" min="0" max="100" value="0">
+      <button class="demo-exit" onclick="exitDemo()">EXIT</button>
+    </div>
+    <div class="btn-zone">
+      <button class="zero-btn" id="zeroBtn" onclick="doZero()">&#8857; ZERO &#8212; LOCK REFERENCE</button>
+      <button class="cust-btn" id="custBtn" onclick="togCust()">&#10022; CUSTOM</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONNECT SCREEN (sits on top, hidden after connect or demo) -->
+<div class="conn-screen" id="connScreen">
+  <div class="conn-icon">&#8857;</div>
+  <div class="conn-title">PIPE BENDER PRO</div>
+  <div class="conn-sub">iPhone: open in <strong>Bluefy</strong><br>Android: open in <strong>Chrome</strong><br><br>Power on the ESP32 then connect</div>
+  <button class="conn-btn" id="connBtn" onclick="doConnect()">CONNECT DEVICE</button>
+  <button class="demo-btn" onclick="startDemo()">&#9654; TRY DEMO MODE</button>
+  <button class="disc-btn" id="discBtn" onclick="doDisc()">DISCONNECT</button>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="settingsOverlay" onclick="overlayClick(event)">
+  <div class="settings-sheet">
+    <div class="sheet-title">SETTINGS</div>
+    <div class="setting-row">
+      <div><div class="setting-lbl">THEME</div><div class="setting-sub">Dark / Light</div></div>
+      <div class="toggle" id="themeToggle" onclick="togTheme()"></div>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-lbl">SCREEN ALWAYS ON</div><div class="setting-sub">Prevents sleep while bending</div></div>
+      <div class="toggle on" id="wlToggle" onclick="togWL()"></div>
+    </div>
+    <button class="sheet-close" onclick="closeSettings()">CLOSE</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+window.onerror = function(msg, src, line, col, err) {
+  var d = document.createElement('div');
+  d.style = 'position:fixed;top:0;left:0;right:0;background:#ff0044;color:#fff;padding:12px;font-size:12px;z-index:9999;font-family:monospace;';
+  d.textContent = 'JS ERROR line ' + line + ': ' + msg;
+  document.body.appendChild(d);
+  return false;
+};
+// ── CONFIG ────────────────────────────────────────────────
+const SVC   = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+const ACHAR = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
+const CCHAR = 'beb5483e-36e1-4688-b7f5-ea07361b26a9';
+const PRESETS   = [10, 22.5, 30, 45, 90];
+const OVERBEND  = 10;
+const DEMO_TGT  = 45;
+
+// ── STATE ─────────────────────────────────────────────────
+var ble=null, cmdCh=null, connected=false;
+var presetIdx=4, useCustom=false, customAng=90, custOpen=false;
+var wakeLock=null, wlEnabled=true, isDark=true;
+var touchX0=0, touchActive=false, onTgtLast=false;
+var demoActive=false, demoTimer=null, demoPhase=0, demoManual=false;
+
+// ── SCREEN CONTROL ────────────────────────────────────────
+function showConnScreen(){
+  document.getElementById('connScreen').classList.remove('hidden');
+}
+function hideConnScreen(){
+  document.getElementById('connScreen').classList.add('hidden');
+}
+
+// ── WAKE LOCK ─────────────────────────────────────────────
+function requestWL(){
+  if(!wlEnabled) return;
+  try{ if('wakeLock' in navigator) navigator.wakeLock.request('screen').then(function(wl){wakeLock=wl;}); }catch(e){}
+}
+function releaseWL(){ if(wakeLock){wakeLock.release();wakeLock=null;} }
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')requestWL();});
+requestWL();
+
+// ── BLE ───────────────────────────────────────────────────
+function doConnect(){
+  if(!navigator.bluetooth){toast('Use Bluefy on iPhone or Chrome on Android','y');return;}
+  var btn=document.getElementById('connBtn');
+  btn.textContent='SCANNING...';btn.disabled=true;
+  navigator.bluetooth.requestDevice({filters:[{name:'PipeBender Pro'}],optionalServices:[SVC]})
+  .then(function(device){
+    ble=device;
+    ble.addEventListener('gattserverdisconnected',onDisc);
+    return ble.gatt.connect();
+  }).then(function(srv){return srv.getPrimaryService(SVC);})
+  .then(function(svc){
+    return Promise.all([svc.getCharacteristic(ACHAR),svc.getCharacteristic(CCHAR)]);
+  }).then(function(chars){
+    var aCh=chars[0]; cmdCh=chars[1];
+    aCh.addEventListener('characteristicvaluechanged',onData);
+    return aCh.startNotifications();
+  }).then(function(){
+    setConn(true); toast('Connected!','g'); requestWL();
+  }).catch(function(e){
+    btn.textContent='CONNECT DEVICE';btn.disabled=false;
+    if(e.name!=='NotFoundError')toast('Connection failed','y');
+  });
+}
+
+function toggleConn(){ if(connected) showConnScreen(); }
+function doDisc(){ if(ble&&ble.gatt.connected)ble.gatt.disconnect(); }
+
+function onDisc(){
+  setConn(false);toast('Disconnected','y');cmdCh=null;showConnScreen();
+}
+
+function setConn(on){
+  connected=on;
+  var pill=document.getElementById('connPill');
+  var txt=document.getElementById('connTxt');
+  var btn=document.getElementById('connBtn');
+  var disc=document.getElementById('discBtn');
+  pill.className='conn-pill '+(on?'on':'off');
+  txt.textContent=on?'CONNECTED':'OFFLINE';
+  btn.style.display=on?'none':'block';
+  btn.textContent='CONNECT DEVICE';btn.disabled=false;
+  disc.style.display=on?'block':'none';
+  if(on){ hideConnScreen(); }
+  else{
+    setDeg('\u2014','var(--sub)');
+    setStatus('CONNECT DEVICE OR TRY DEMO','var(--sub)');
+    document.getElementById('progZone').style.display='none';
+    document.getElementById('lvlBar').style.display='flex';
+    updBar(0,null,false);
+  }
+}
+
+// ── DATA ──────────────────────────────────────────────────
+function onData(e){
+  try{ updateUI(JSON.parse(new TextDecoder().decode(e.target.value))); }catch(ex){}
+}
+
+function updateUI(d){
+  var angle   = d.angle    !== undefined ? d.angle    : 0;
+  var moved   = d.moved    !== undefined ? d.moved    : 0;
+  var prog    = d.progress !== undefined ? d.progress : 0;
+  var onTgt   = d.onTarget !== undefined ? d.onTarget : false;
+  var zeroed  = d.zeroed   !== undefined ? d.zeroed   : false;
+  var mode    = d.mode     !== undefined ? d.mode     : 'level';
+  var dUseC   = d.useCustom!== undefined ? d.useCustom: false;
+  var dCAng   = d.customAngle!==undefined? d.customAngle: customAng;
+  var pidx    = d.preset   !== undefined ? d.preset   : presetIdx;
+  var isOver  = prog > 1.0;
+  var target  = dUseC ? dCAng : PRESETS[pidx];
+
+  if(pidx!==presetIdx && !dUseC){ presetIdx=pidx; updPreUI(pidx,false); }
+
+  document.getElementById('modeBadge').textContent =
+    mode==='level'?'LEVEL MODE':zeroed?'BEND MODE \u2014 ZEROED':'BEND MODE \u2014 PLACE ON PIPE';
+
+  var inLevel = mode==='level' || (mode==='bend' && !zeroed);
+
+  if(inLevel){
+    var lev = Math.abs(angle)<1;
+    setDeg(Math.abs(angle).toFixed(1), lev?'var(--green)':'var(--orange)');
+    setStatus(
+      mode==='level'?(lev?'LEVEL':(angle<0?'TILT LEFT':'TILT RIGHT')):'PLACE ON PIPE \u2014 TAP ZERO TO LOCK',
+      lev?'var(--green)':'var(--orange)'
+    );
+    document.getElementById('lvlBar').style.display='flex';
+    document.getElementById('progZone').style.display='none';
+    updBar(angle,null,false);
+  } else if(isOver){
+    var past=(moved-target).toFixed(1);
+    setDeg(moved.toFixed(1),'var(--purple)');
+    setStatus('OVER '+past+'\u00b0 \u2014 SPRINGBACK ZONE','var(--purple)');
+    showProg(prog,target,true,false);
+    updBar(null,prog,true);
+    if(!onTgtLast) vibrate([60,30,60]);
+  } else if(onTgt){
+    setDeg(moved.toFixed(1),'var(--green)');
+    setStatus('ON TARGET \u2014 KEEP BENDING FOR SPRINGBACK','var(--green)');
+    showProg(prog,target,false,true);
+    updBar(null,prog,false);
+    if(!onTgtLast) vibrate([100,50,100]);
+  } else {
+    var rem=Math.max(0,target-moved);
+    var near=rem<=5;
+    setDeg(moved.toFixed(1),near?'var(--orange)':'var(--txt)');
+    setStatus(rem.toFixed(1)+'\u00b0 REMAINING TO TARGET',near?'var(--orange)':'var(--sub)');
+    showProg(prog,target,false,false);
+    updBar(null,prog,false);
+  }
+  onTgtLast = onTgt||isOver;
+  if(mode==='bend'&&!zeroed){document.getElementById('zeroBtn').classList.add('pulse');}else{document.getElementById('zeroBtn').classList.remove('pulse');}
+}
+
+function setDeg(val,color){
+  var el=document.getElementById('degNum');
+  el.textContent=val; el.style.color=color;
+}
+function setStatus(txt,color){
+  var el=document.getElementById('statusLine');
+  el.textContent=txt; el.style.color=color;
+}
+function showProg(prog,target,isOver,onTgt){
+  document.getElementById('lvlBar').style.display='none';
+  document.getElementById('progZone').style.display='block';
+  var pct=Math.min(100,Math.round(Math.min(1,prog)*100));
+  var fill=document.getElementById('progFill');
+  fill.style.width=pct+'%';
+  fill.style.background=isOver?'var(--purple)':onTgt?'var(--green)':prog>0.75?'var(--orange)':'var(--red)';
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('progTgt').textContent=target+'\u00b0';
+}
+
+// ── LEVEL BAR ─────────────────────────────────────────────
+function updBar(tilt,prog,isOver){
+  var ds=[0,1,2,3,4].map(function(i){return document.getElementById('ld'+i);});
+  ds.forEach(function(d,i){d.className='ld'+(i===2?' ctr':'');});
+  if(prog!==null){
+    if(isOver)          ds[2].classList.add('p');
+    else if(prog>=0.98) ds[2].classList.add('g');
+    else if(prog>=0.75){ds[1].classList.add('y');ds[3].classList.add('y');}
+    else if(prog>=0.40){ds[0].classList.add('y');ds[4].classList.add('y');}
+  } else if(tilt!==null){
+    var a=Math.abs(tilt);
+    if(a<1)          ds[2].classList.add('g');
+    else if(tilt<0)  ds[a<3?1:0].classList.add('y');
+    else             ds[a<3?3:4].classList.add('y');
+  }
+}
+
+// ── ACTIONS ───────────────────────────────────────────────
+function doZero(){
+  send({cmd:'zero'});
+  toast('Reference locked \u2713','g');
+  vibrate([60]);
+  document.getElementById('zeroBtn').classList.remove('pulse');
+  // Reset display to zero — bend starts fresh from here
+  setDeg('0.0','var(--txt)');
+  setStatus('BENDING \u2014 0.0\u00b0 REMAINING TO TARGET','var(--sub)');
+  document.getElementById('lvlBar').style.display='none';
+  document.getElementById('progZone').style.display='block';
+  var fill=document.getElementById('progFill');
+  fill.style.width='0%';
+  fill.style.background='var(--red)';
+  var tgt=useCustom?customAng:PRESETS[presetIdx];
+  document.getElementById('progPct').textContent='0%';
+  document.getElementById('progTgt').textContent=tgt+'\u00b0';
+}
+
+// ── PRESETS ───────────────────────────────────────────────
+function selPre(i){
+  presetIdx=i; useCustom=false; customAng=PRESETS[i]; custOpen=false;
+  document.getElementById('custDrawer').classList.remove('show');
+  document.getElementById('custBtn').classList.remove('on');
+  updPreUI(i,false);
+  send({cmd:'preset',index:i});
+}
+
+function updPreUI(idx,isC){
+  [0,1,2,3,4].forEach(function(i){
+    document.getElementById('pc'+i).className='pre-card'+(i===idx&&!isC?' on':' adj');
+  });
+  var t=isC?customAng:PRESETS[idx];
+  document.getElementById('overBadge').textContent='Overbend zone: '+t+'\u00b0 \u2192 '+(t+OVERBEND)+'\u00b0';
+  document.getElementById('progTgt').textContent=t+'\u00b0';
+}
+
+// ── SWIPE ─────────────────────────────────────────────────
+function tsStart(e){touchX0=e.touches[0].clientX;touchActive=true;}
+function tsMove(e){if(touchActive)e.preventDefault();}
+function tsEnd(e){
+  if(!touchActive)return; touchActive=false;
+  var dx=e.changedTouches[0].clientX-touchX0;
+  if(Math.abs(dx)<40)return;
+  var n=dx<0?Math.min(4,presetIdx+1):Math.max(0,presetIdx-1);
+  if(n!==presetIdx)selPre(n);
+}
+
+// ── CUSTOM ANGLE ──────────────────────────────────────────
+function togCust(){
+  custOpen=!custOpen;
+  if(custOpen){
+    customAng=useCustom?customAng:PRESETS[presetIdx];
+    document.getElementById('custDisp').textContent=customAng+'\u00b0';
+    updPreUI(presetIdx,true);
+  }
+  if(custOpen){document.getElementById('custDrawer').classList.add('show');}else{document.getElementById('custDrawer').classList.remove('show');}
+  if(custOpen){document.getElementById('custBtn').classList.add('on');}else{document.getElementById('custBtn').classList.remove('on');}
+}
+function adjC(dir){
+  customAng=Math.max(0,Math.min(180,customAng+dir));
+  useCustom=true;
+  document.getElementById('custDisp').textContent=customAng+'\u00b0';
+  document.getElementById('overBadge').textContent='Overbend zone: '+customAng+'\u00b0 \u2192 '+(customAng+OVERBEND)+'\u00b0';
+  send({cmd:'custom_angle',value:customAng});
+  updPreUI(presetIdx,true);
+}
+
+// ── DEMO MODE ─────────────────────────────────────────────
+function startDemo(){
+  demoActive=true; demoPhase=0; demoManual=false;
+  hideConnScreen();
+  document.getElementById('demoBar').classList.add('show');
+  document.getElementById('demoSlider').oninput=onDemoSlider;
+  toast('DEMO \u2014 drag slider or watch auto-run','');
+  runDemoPhase();
+}
+
+function exitDemo(){
+  demoActive=false;
+  if(demoTimer){clearTimeout(demoTimer);demoTimer=null;}
+  document.getElementById('demoBar').classList.remove('show');
+  setDeg('\u2014','var(--sub)');
+  setStatus('CONNECT DEVICE OR TRY DEMO','var(--sub)');
+  document.getElementById('progZone').style.display='none';
+  document.getElementById('lvlBar').style.display='flex';
+  updBar(0,null,false);
+  document.getElementById('zeroBtn').classList.remove('pulse');
+  showConnScreen();
+}
+
+function onDemoSlider(){
+  demoManual=true;
+  if(demoTimer){clearTimeout(demoTimer);demoTimer=null;}
+  var pct=parseInt(document.getElementById('demoSlider').value)/100;
+  if(pct<0.33){
+    var tilt=(pct/0.33)*30-15;
+    updateUI({mode:'level',angle:tilt,moved:0,progress:0,onTarget:false,zeroed:false});
+  } else {
+    var bp=(pct-0.33)/0.67;
+    var moved=bp*(DEMO_TGT+12);
+    var prog=moved/DEMO_TGT;
+    updateUI({mode:'bend',angle:0,moved:moved,progress:prog,onTarget:Math.abs(moved-DEMO_TGT)<1.5,zeroed:true,preset:3,useCustom:false});
+  }
+  if(demoTimer) clearTimeout(demoTimer);
+  demoTimer=setTimeout(function(){demoManual=false;runDemoPhase();},3000);
+}
+
+function runDemoPhase(){
+  if(!demoActive||demoManual)return;
+  var phases=[phaseLevelTilt,phaseBendStart,phaseBending,phaseOnTarget,phaseOverbend];
+  phases[demoPhase%phases.length]();
+}
+
+function phaseLevelTilt(){
+  var s=0,max=60;
+  function tick(){
+    if(!demoActive||demoManual)return;
+    s++;
+    var tilt=Math.sin(s/max*Math.PI*2)*12;
+    updateUI({mode:'level',angle:tilt,moved:0,progress:0,onTarget:false,zeroed:false});
+    document.getElementById('demoSlider').value=Math.round((s/max)*33);
+    if(s<max){demoTimer=setTimeout(tick,50);}
+    else{demoPhase++;demoTimer=setTimeout(runDemoPhase,400);}
+  }
+  tick();
+}
+
+function phaseBendStart(){
+  var s=0,max=40;
+  function tick(){
+    if(!demoActive||demoManual)return;
+    s++;
+    updateUI({mode:'bend',angle:Math.sin(s/max*Math.PI)*4,moved:0,progress:0,onTarget:false,zeroed:false,preset:3});
+    document.getElementById('demoSlider').value=33;
+    if(s<max){demoTimer=setTimeout(tick,50);}
+    else{
+      updateUI({mode:'bend',angle:0,moved:0,progress:0,onTarget:false,zeroed:true,preset:3});
+      demoPhase++;demoTimer=setTimeout(runDemoPhase,800);
+    }
+  }
+  tick();
+}
+
+function phaseBending(){
+  var angle=0;
+  function tick(){
+    if(!demoActive||demoManual)return;
+    angle=Math.min(angle+0.6,DEMO_TGT);
+    var prog=angle/DEMO_TGT;
+    updateUI({mode:'bend',angle:0,moved:angle,progress:prog,onTarget:Math.abs(angle-DEMO_TGT)<1.5,zeroed:true,preset:3,useCustom:false});
+    document.getElementById('demoSlider').value=Math.round(33+(angle/DEMO_TGT)*0.55*67);
+    if(angle<DEMO_TGT){demoTimer=setTimeout(tick,50);}
+    else{demoPhase++;demoTimer=setTimeout(runDemoPhase,400);}
+  }
+  tick();
+}
+
+function phaseOnTarget(){
+  updateUI({mode:'bend',angle:0,moved:DEMO_TGT,progress:1.0,onTarget:true,zeroed:true,preset:3});
+  document.getElementById('demoSlider').value=Math.round(33+0.55*67);
+  demoPhase++;demoTimer=setTimeout(runDemoPhase,2000);
+}
+
+function phaseOverbend(){
+  var extra=0;
+  function tick(){
+    if(!demoActive||demoManual)return;
+    extra=Math.min(extra+0.4,10);
+    var moved=DEMO_TGT+extra;
+    updateUI({mode:'bend',angle:0,moved:moved,progress:moved/DEMO_TGT,onTarget:false,zeroed:true,preset:3});
+    document.getElementById('demoSlider').value=Math.round(33+(moved/(DEMO_TGT+12))*0.67*67);
+    if(extra<10){demoTimer=setTimeout(tick,80);}
+    else{demoPhase++;demoTimer=setTimeout(runDemoPhase,1500);}
+  }
+  tick();
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+function openSettings(){ document.getElementById('settingsOverlay').classList.add('show'); }
+function closeSettings(){ document.getElementById('settingsOverlay').classList.remove('show'); }
+function overlayClick(e){ if(e.target===document.getElementById('settingsOverlay'))closeSettings(); }
+function togTheme(){
+  isDark=!isDark;
+  document.body.className=isDark?'dark':'light';
+  if(!isDark){document.getElementById('themeToggle').classList.add('on');}else{document.getElementById('themeToggle').classList.remove('on');}
+}
+function togWL(){
+  wlEnabled=!wlEnabled;
+  if(wlEnabled){document.getElementById('wlToggle').classList.add('on');}else{document.getElementById('wlToggle').classList.remove('on');}
+  if(wlEnabled)requestWL(); else releaseWL();
+}
+
+// ── SEND ──────────────────────────────────────────────────
+function send(obj){
+  if(demoActive)return;
+  if(!cmdCh){toast('Not connected','y');return;}
+  cmdCh.writeValue(new TextEncoder().encode(JSON.stringify(obj)))
+  .catch(function(){toast('Command failed','y');});
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+var tTimer=null;
+function toast(msg,type){
+  type=type||'';
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(type?' '+type:'');
+  clearTimeout(tTimer);tTimer=setTimeout(function(){t.classList.remove('show');},2500);
+}
+function vibrate(p){ if(navigator.vibrate)navigator.vibrate(p); }
+
+// ── INIT ──────────────────────────────────────────────────
+updPreUI(4,false);
+// JS loaded indicator - remove after confirming working
+(function(){
+  var d=document.createElement('div');
+  d.id='jsok';
+  d.style='position:fixed;bottom:4px;right:4px;background:#00d97e;color:#000;padding:3px 8px;font-size:9px;border-radius:6px;z-index:9999;font-family:monospace;';
+  d.textContent='JS OK';
+  document.body.appendChild(d);
+  setTimeout(function(){var el=document.getElementById('jsok');if(el)el.remove();},3000);
+})();
+</script>
+</body>
+</html>
